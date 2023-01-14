@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="Content-type" content="text/html; charset=utf-8">
+  <title>Wealthica Example Add-on</title>
+  <style>
+    body { margin: 0; padding: 0; }
+  </style>
+  <script type="text/javascript" src="https://wealthica.github.io/wealthica.js/dist/addon.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/underscore.js/1.9.1/underscore-min.js"></script>
+</head>
+<body>
+  <h3>This is the Wealthica Example Add-on.</h3>
+  <p>Try some of the actions below:</p>
+  <p>
+    <button type="button" disabled="disabled" id="getTransactions">List Transactions</button>
+    <button type="button" disabled="disabled" id="getPositions">List Positions</button>
+    <button type="button" disabled="disabled" id="addTransaction">Add Transaction</button>
+    <button type="button" disabled="disabled" id="saveData">Save Data</button>
+  </p>
+  <textarea id="data" rows="8" cols="100"></textarea>
+  <div id="result"></div>
+
+  <script type="text/javascript">
+    var addon, addonOptions;
+
+    $(function () {
+      addon = new Addon();
+
+      addon.on('init', function (options) {
+        // Dashboard is ready and is signaling to the add-on that it should
+        // render using the passed in options (filters, language, etc.)
+        addonOptions = options;
+        $('button').removeAttr('disabled');
+        showAddonData(addonOptions.data, true);
+      }).on('update', function (options) {
+        // Filters have been updated and Dashboard is passing in updated options
+        addonOptions = _.extend(addonOptions, options);
+        showAddonData(addonOptions.data);
+      });
+
+      $('#addTransaction').on('click', function () {
+        $(this).attr('disabled', 'disabled');
+
+        addon.addTransaction({
+          description: "New transaction from Example Add-on"
+        }).then(function (transaction) {
+          $('#result').html('New transaction:<br><code>' + JSON.stringify(transaction) + '</code>');
+        }).catch(function (err) {
+          $('#result').html('Error:<br><code>' + err + '</code>');
+        }).finally(function () {
+          $('#addTransaction').removeAttr('disabled');
+        });
+      });
+
+      $('#getTransactions').on('click', function () {
+        $(this).attr('disabled', 'disabled');
+
+        addon.api.getTransactions(getQueryFromOptions(addonOptions)).then(function (response) {
+          $('#result').html('List Transactions Result:<br><code>' + JSON.stringify(response) + '</code>');
+        }).catch(function (err) {
+          $('#result').html('Error:<br><code>' + err + '</code>');
+        }).finally(function () {
+          $('#getTransactions').removeAttr('disabled');
+        });
+      });
+
+      $('#getPositions').on('click', function () {
+        $(this).attr('disabled', 'disabled');
+
+        addon.api.getPositions(getQueryFromOptions(addonOptions)).then(function (response) {
+          $('#result').html('List Positions Result:<br><code>' + JSON.stringify(response) + '</code>');
+        }).catch(function (err) {
+          $('#result').html('Error:<br><code>' + err + '</code>');
+        }).finally(function () {
+          $('#getPositions').removeAttr('disabled');
+        });
+      });
+
+      $('#saveData').on('click', function () {
+        $(this).attr('disabled', 'disabled');
+        var newData = $('#data').val();
+
+        // Try parsing textarea value to a JSON object before passing to addon.saveData(data)
+        try { newData = JSON.parse(newData) }
+        catch (e) {
+          $('#result').html('Error:<br><code>Data must be JSON</code>');
+          $('#saveData').removeAttr('disabled');
+          return;
+        }
+
+        addon.saveData(newData).catch(function (err) {
+          $('#result').html('Error:<br><code>' + err + '</code>');
+        }).finally(function () {
+          $('#saveData').removeAttr('disabled');
+        });
+      });
+
+      // Show addon data in result box and optionally update the text input.
+      function showAddonData(data, updateInput) {
+        $('#result').html('Addon data:<br><code>' + JSON.stringify(data) + '</code>');
+        if (updateInput && data) {
+          $('#data').val(JSON.stringify(data));
+        }
+      }
+
+      // Compose a query object from the addon options to pass to the API calls.
+      function getQueryFromOptions (options) {
+        return {
+          from: options.dateRangeFilter && options.dateRangeFilter[0],
+          to: options.dateRangeFilter && options.dateRangeFilter[1],
+          groups: options.groupsFilter,
+          institutions: options.institutionsFilter,
+          investments: options.investmentsFilter === 'all' ? null: options.investmentsFilter,
+        }
+      }
+    });
+  </script>
+
+</body>
+</html>
