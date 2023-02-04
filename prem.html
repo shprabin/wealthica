@@ -72,8 +72,8 @@
 
         addon.api.getPositions(getQueryFromOptions(addonOptions)).then(function (response) {
           try{ 
-               positionsList=JSON.parse(response);
-               $('#result').html(positionsList[0]._id);
+               //positionsList=JSON.parse(response);
+               $('#result').html(response[0]._id);
              }
           catch(e) {
             $('#result').html('Error:<br><code>Error in Json</code>');            
