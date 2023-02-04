@@ -74,13 +74,13 @@
           try{ 
                positionsList=JSON.parse(response);
                $('#result').html(positionsList[0]._id);
-               return;
              }
           catch(e) {
-            $('#result').html('Error:<br><code>Error in Json</code>');
+            $('#result').html('Error:<br><code>Error in Json</code>');            
           }
+          return;
          
-          $('#result').html('List Positions Result:<br><code>' + JSON.stringify(response) + '</code>');
+          $('#result').html('List Positions Result new:<br><code>' + JSON.stringify(response) + '</code>');
         }).catch(function (err) {
           $('#result').html('Error:<br><code>' + err + '</code>');
         }).finally(function () {
